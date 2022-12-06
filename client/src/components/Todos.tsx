@@ -4,14 +4,16 @@ import update from 'immutability-helper'
 import * as React from 'react'
 import {
   Button,
-  Checkbox,
   Divider,
   Grid,
   Header,
   Icon,
   Input,
   Image,
-  Loader
+  Loader,
+  Form,
+  Segment,
+  Checkbox
 } from 'semantic-ui-react'
 
 import { createTodo, deleteTodo, getTodos, patchTodo } from '../api/todos-api'
@@ -26,6 +28,7 @@ interface TodosProps {
 interface TodosState {
   todos: Todo[]
   newTodoName: string
+  newTodoDesc: string
   loadingTodos: boolean
 }
 
@@ -33,6 +36,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
   state: TodosState = {
     todos: [],
     newTodoName: '',
+    newTodoDesc: '',
     loadingTodos: true
   }
 
@@ -40,21 +44,31 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
     this.setState({ newTodoName: event.target.value })
   }
 
+  handleDescChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({ newTodoDesc: event.target.value })
+  }
+
   onEditButtonClick = (todoId: string) => {
     this.props.history.push(`/todos/${todoId}/edit`)
   }
 
-  onTodoCreate = async (event: React.ChangeEvent<HTMLButtonElement>) => {
+  onTodoCreate = async () => {
     try {
-      const dueDate = this.calculateDueDate()
-      const newTodo = await createTodo(this.props.auth.getIdToken(), {
-        name: this.state.newTodoName,
-        dueDate
-      })
-      this.setState({
-        todos: [...this.state.todos, newTodo],
-        newTodoName: ''
-      })
+      if(this.state.newTodoName.length === 0) {
+        alert('Todo creation failed. Please input {Task Name}')
+      } else {
+        const dueDate = this.calculateDueDate()
+        const newTodo = await createTodo(this.props.auth.getIdToken(), {
+          name: this.state.newTodoName,
+          desc: this.state.newTodoDesc,
+          dueDate
+        })
+        this.setState({
+          todos: [...this.state.todos, newTodo],
+          newTodoName: '',
+          newTodoDesc: ''
+        })
+      }
     } catch {
       alert('Todo creation failed')
     }
@@ -76,6 +90,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
       const todo = this.state.todos[pos]
       await patchTodo(this.props.auth.getIdToken(), todo.todoId, {
         name: todo.name,
+        desc: todo.desc,
         dueDate: todo.dueDate,
         done: !todo.done
       })
@@ -116,21 +131,19 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
   renderCreateTodoInput() {
     return (
       <Grid.Row>
-        <Grid.Column width={16}>
-          <Input
-            action={{
-              color: 'teal',
-              labelPosition: 'left',
-              icon: 'add',
-              content: 'New task',
-              onClick: this.onTodoCreate
-            }}
-            fluid
-            actionPosition="left"
-            placeholder="To change the world..."
-            onChange={this.handleNameChange}
-          />
-        </Grid.Column>
+        <Segment>
+          <Form>
+            <Form.Field required>
+              <label>Task Name</label>
+              <Input placeholder='Task Name' onChange={this.handleNameChange} />
+            </Form.Field>
+            <Form.Field>
+              <label>Description</label>
+              <Input placeholder='Description' onChange={this.handleDescChange} />
+            </Form.Field>
+            <Button primary onClick={() => this.onTodoCreate()}><Icon name="save" />Save</Button>
+          </Form>
+        </Segment>
         <Grid.Column width={16}>
           <Divider />
         </Grid.Column>
@@ -168,8 +181,11 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
                   checked={todo.done}
                 />
               </Grid.Column>
-              <Grid.Column width={10} verticalAlign="middle">
+              <Grid.Column width={5} verticalAlign="middle">
                 {todo.name}
+              </Grid.Column>
+              <Grid.Column width={5} verticalAlign="middle">
+                {todo.desc}
               </Grid.Column>
               <Grid.Column width={3} floated="right">
                 {todo.dueDate}

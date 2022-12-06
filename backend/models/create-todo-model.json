@@ -4,6 +4,10 @@
   "type": "object",
   "properties": {
     "name": {
+      "type": "string",
+      "pattern": "^(?!\\s*$).+"
+    },
+    "desc": {
       "type": "string"
     },
     "dueDate": {
@@ -12,6 +16,7 @@
   },
   "required": [
     "name",
+    "desc",
     "dueDate"
   ],
   "additionalProperties": false
