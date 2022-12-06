@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { cors, httpErrorHandler } from 'middy/middlewares'
 import { AttachmentUtils } from '../../helpers/attachmentUtils'
 import { getUserId } from '../utils'
-import { updateAttachmentUrl } from '../../helpers/todos'
+import { updateAttachmentUrl } from '../../businessLogic/todos'
 
 
 const attachmentUtils = new AttachmentUtils()
